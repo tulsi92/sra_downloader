@@ -2,7 +2,7 @@ import os
 import glob
 
 SRALIST = "SraAccList.txt"
-DATASET = "raw"
+DATASET = "dataset"
 READS = ["I1","R1","R2"]
 
 with open(SRALIST, "r") as srafile:
