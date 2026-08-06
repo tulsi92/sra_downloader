@@ -1,31 +1,104 @@
-## SRA DOWNLOADER
-Date: 2022-05-16    
-Author: Tulsi Patel   
+# SRA Downloader
 
-**PURPOSE:**
-Download files from GEO Sequence Read Archive (SRA) using list of accession numbers and extract to fastq/other depending on format.   
+This repository contains a Snakemake workflow for downloading sequencing data from the NCBI Sequence Read Archive (SRA) and converting `.sra` files into FASTQ files for downstream analyses.
 
-### CONFIG PARAMS
-Edit these at the top of the Snakefile to specific file containing accession numbers and an output folder with dataset name and date (can move files after).
+Separate workflows are provided for paired-end and single-end datasets.
 
-SRALIST = "SraAccList.txt"    
-DATASET = "dataset_20250212"
+## Workflow overview
 
-SRALIST should be in the format downloaded exactly from GEO/SRA, as shown below:    
+The pipeline performs the following steps for each accession:
 
-SRR8270313    
-SRR8270314    
+1. Download `.sra` files from the NCBI Sequence Read Archive
+2. Convert `.sra` files to FASTQ format
+3. Rename FASTQ files to standardized read names (paired-end workflow)
+
+## Workflow
+
+| Step | Snakemake rule | Description | Primary outputs |
+|------|----------------|-------------|-----------------|
+| **1. Download SRA files** | `fetch_accession` | Download sequencing files from the NCBI Sequence Read Archive using `prefetch`. | `.sra` files |
+| **2. Convert to FASTQ** | `sra_to_fastq` | Convert `.sra` files to FASTQ format using `fasterq-dump`. | FASTQ files |
+| **3. Rename FASTQ files** *(paired-end only)* | `rename_fastq` | Rename FASTQ files to standardized read identifiers (`I1`, `R1`, `R2`). | Renamed FASTQ files |
+
+## Prerequisites
+
+### Input data
+
+Required inputs include:
+
+- A text file containing one SRA accession per line (e.g. `SraAccList.txt`)
+
+Example:
+
+```text
+SRR8270313
+SRR8270314
 SRR8270315
+```
 
-## Pipeline
-### FETCH_ACCESSION
-Get .sra file from SRA archive using file containing a list of accession numbers in the format below. Uses NCBI docker container for sra-tools.
+### Software
 
-### SRA_TO_FASTQ
-Converts .sra files from previous rule to extract paired-end fastq files to output individual files for read_1 and read_2. Uses NCBI docker container for sra-tools.
+The workflow is implemented in Snakemake and uses:
 
-### NOTES
-- NEED TO ADD OPTION FOR EXTRACTION DEPENDING ON EXPECTED OUTPUT!
-- Issue with docker container requiring bash instead of sh but currently using a workaround which applies to all rules rather than only a specific rule. 
-- Some datasets will not have paired-end reads so the READ parameter for read 1/2 has been removed in the alternate Snakefile to run these (not common).
-- File structure of the outputs is not standardized so can get error saying 'job finished successfully but waiting for missing output file', for this would need to reformat Snakefile outputs to change `{dataset}/{accession}/{accession}` to `{dataset}/{accession}` depending on where files are output as necessary.
+- SRA Toolkit (`prefetch`, `fasterq-dump`)
+- Docker container (`befh/sra-tools:3.0.0`)
+
+## Configuration
+
+Update the parameters at the top of the Snakefile before running:
+
+- `SRALIST` – file containing SRA accession numbers
+- `DATASET` – output directory name
+- `READS` – output read names (paired-end workflow only)
+
+Example:
+
+```python
+SRALIST = "SraAccList.txt"
+DATASET = "dataset_20250212"
+READS = ["I1", "R1", "R2"]
+```
+
+## Running the pipeline
+
+```bash
+# Dry run
+snakemake -np
+
+# Run the full workflow
+snakemake --profile lsf
+```
+
+## Outputs
+
+For each accession, the workflow generates:
+
+- Downloaded `.sra` files (temporary)
+- FASTQ files
+- Standardized FASTQ file names (paired-end workflow)
+
+Directory structure:
+
+```
+dataset/
+└── SRR8270313/
+    ├── SRR8270313_I1.fastq
+    ├── SRR8270313_R1.fastq
+    └── SRR8270313_R2.fastq
+```
+
+## Single-end datasets
+
+A separate Snakefile is provided for datasets generated using single-end sequencing.
+
+The single-end workflow:
+
+- Downloads SRA files
+- Converts them directly to FASTQ
+- Does not perform read renaming
+
+## Notes
+
+- The workflow currently assumes paired-end data with index reads (`I1`, `R1`, `R2`). Use the alternate Snakefile for single-end datasets
+- Output directory structures can vary between SRA datasets. Depending on the dataset, output paths in the Snakefile may need to be adjusted
+- Proxy settings are included for execution on the Mount Sinai HPC environment and may need to be modified for other systems
