@@ -18,7 +18,8 @@ The pipeline performs the following steps for each accession:
 |------|----------------|-------------|-----------------|
 | **1. Download SRA files** | `fetch_accession` | Download sequencing files from the NCBI Sequence Read Archive using `prefetch`. | `.sra` files |
 | **2. Convert to FASTQ** | `sra_to_fastq` | Convert `.sra` files to FASTQ format using `fasterq-dump`. | FASTQ files |
-| **3. Rename FASTQ files** *(paired-end only)* | `rename_fastq` | Rename FASTQ files to standardized read identifiers (`I1`, `R1`, `R2`). | Renamed FASTQ files |
+| **3. Gzip FASTQ** | `gzip_fastq` | Gzip FASTQ files to conserve file size. | Gzipped FASTQ files |
+| **4. Rename FASTQ files** *(indexed only)* | `rename_fastq` | Rename FASTQ files to standardized read identifiers (`I1`, `R1`, `R2`). | Renamed FASTQ files |
 
 ## Prerequisites
 
@@ -56,7 +57,7 @@ Example:
 ```python
 SRALIST = "SraAccList.txt"
 DATASET = "dataset_20250212"
-READS = ["I1", "R1", "R2"]
+READS = ["R1", "R2"]
 ```
 
 ## Running the pipeline
@@ -75,14 +76,12 @@ For each accession, the workflow generates:
 
 - Downloaded `.sra` files (temporary)
 - Gzipped FASTQ files
-- Standardized FASTQ file names (paired-end workflow)
 
 Directory structure:
 
 ```
 dataset/
 └── SRR8270313/
-    ├── SRR8270313_I1.fastq.gz
     ├── SRR8270313_R1.fastq.gz
     └── SRR8270313_R2.fastq.gz
 ```
@@ -97,8 +96,9 @@ The single-end workflow:
 - Converts them directly to FASTQ
 - Does not perform read renaming
 
-## Notes
+The indexed workflow:
+- Assumes paired-end data with index reads (`I1`, `R1`, `R2`)
 
-- The workflow currently assumes paired-end data with index reads (`I1`, `R1`, `R2`). Use the alternate Snakefile for single-end datasets
+## Notes
 - Output directory structures can vary between SRA datasets. Depending on the dataset, output paths in the Snakefile may need to be adjusted
 - Proxy settings are included for execution on the Mount Sinai HPC environment and may need to be modified for other systems
