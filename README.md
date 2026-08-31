@@ -74,7 +74,7 @@ snakemake --profile lsf
 For each accession, the workflow generates:
 
 - Downloaded `.sra` files (temporary)
-- FASTQ files
+- Gzipped FASTQ files
 - Standardized FASTQ file names (paired-end workflow)
 
 Directory structure:
@@ -82,9 +82,9 @@ Directory structure:
 ```
 dataset/
 └── SRR8270313/
-    ├── SRR8270313_I1.fastq
-    ├── SRR8270313_R1.fastq
-    └── SRR8270313_R2.fastq
+    ├── SRR8270313_I1.fastq.gz
+    ├── SRR8270313_R1.fastq.gz
+    └── SRR8270313_R2.fastq.gz
 ```
 
 ## Single-end datasets
