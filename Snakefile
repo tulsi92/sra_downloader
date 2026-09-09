@@ -14,7 +14,7 @@ localrules: main
 
 rule main:
     input:
-        expand("{dataset}/{accession}/{accession}_{new_read}.fastq.gz", dataset=DATASET, accession=ACCESSION, read=READS)
+        expand("{dataset}/{accession}/{accession}_{read}.fastq.gz", dataset=DATASET, accession=ACCESSION, read=READS)
 
 rule fetch_accession:
     output: temp("{dataset}/{accession}/{accession}.sra")
