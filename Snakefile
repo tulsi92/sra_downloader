@@ -3,7 +3,7 @@ import glob
 
 SRALIST = "SraAccList.txt"
 DATASET = "dataset"
-READS = ["R1","R2"]
+READS = ["R1","R2"] #or [1,2] check filenames
 
 with open(SRALIST, "r") as srafile:
     ACCESSION = [x.strip() for x in srafile]
@@ -58,5 +58,5 @@ rule gzip_fastq:
         mem_mb = 2000
     shell:
         """
-        gzip input
+        pigz {input}
         """
